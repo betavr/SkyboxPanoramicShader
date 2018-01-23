@@ -108,6 +108,7 @@ SubShader {
             o.vertex = UnityObjectToClipPos(rotated);
             o.texcoord = v.vertex.xyz;
 #ifdef _MAPPING_6_FRAMES_LAYOUT
+            /*
             // layout and edgeSize are solely based on texture dimensions and can thus be precalculated in the vertex shader.
             float sourceAspect = float(_Tex_TexelSize.z) / float(_Tex_TexelSize.w);
             // Use the halfway point between the 1:6 and 3:4 aspect ratios of the strip and cross layouts to
@@ -156,11 +157,25 @@ SubShader {
                     o.layout = float3(-1,1.0/1.0,1.0/6.0);
                 }
             }
+            */
+
+            // horizontal strip
+            o.faceXCoordLayouts = float4(0.5, 0.5, 1.5, 0.5);
+            o.faceYCoordLayouts = float4(2.5, 0.5, 3.5, 0.5);
+            o.faceZCoordLayouts = float4(4.5, 0.5, 5.5, 0.5);
+            o.layout = float3(-1, 1.0 / 6.0, 1.0 / 1.0);
+
             // edgeSize specifies the minimum (xy) and maximum (zw) normalized face texture coordinates that will be used for
             // sampling in the texture. Setting these to the effective size of a half pixel horizontally and vertically
             // effectively enforces clamp mode texture wrapping for each individual face.
             o.edgeSize.xy = _Tex_TexelSize.xy * 0.5 / o.layout.yz - 0.5;
             o.edgeSize.zw = -o.edgeSize.xy;
+
+            // additional stitching offset for seamless joining of the faces
+            //float stitch = 0.0045;
+            float stitch = 0.00;
+            o.edgeSize.xy += stitch;
+            o.edgeSize.zw -= stitch;
 #else // !_MAPPING_6_FRAMES_LAYOUT
             // Calculate constant horizontal scale and cutoff for 180 (vs 360) image type
             if (_ImageType == 0)  // 360 degree
@@ -173,7 +188,7 @@ SubShader {
             if (_Layout == 0) // No 3D layout
                 o.layout3DScaleAndOffset = float4(0,0,1,1);
             else if (_Layout == 1) // Side-by-Side 3D layout
-                o.layout3DScaleAndOffset = float4(unity_StereoEyeIndex,0,0.5,1);
+                o.layout3DScaleAndOffset = float4(1-unity_StereoEyeIndex,0,0.5,1);
             else // Over-Under 3D layout
                 o.layout3DScaleAndOffset = float4(0, 1-unity_StereoEyeIndex,1,0.5);
 
