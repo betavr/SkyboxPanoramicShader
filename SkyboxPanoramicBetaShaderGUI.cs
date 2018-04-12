@@ -25,10 +25,21 @@ namespace UnityEditor
             // Allow the default implementation to set widths for consistency for common properties.
             float lw = EditorGUIUtility.labelWidth;
             materialEditor.SetDefaultGUIWidths();
+
             ShowProp(materialEditor, FindProperty("_Tint", props));
             ShowProp(materialEditor, FindProperty("_Exposure", props));
             ShowProp(materialEditor, FindProperty("_Rotation", props));
+            ShowProp(materialEditor, FindProperty("_Stitching", props));
             ShowProp(materialEditor, FindProperty("_Tex", props));
+
+            int i;
+            for (i = 1; i <= 6; i++)
+            {
+                ShowProp(materialEditor, FindProperty("_TexL" + i, props));
+                ShowProp(materialEditor, FindProperty("_BlendL" + i, props));
+                ShowProp(materialEditor, FindProperty("_OpacityL" + i, props));
+            }
+
             EditorGUIUtility.labelWidth = lw;
 
             m_ShowLatLongLayout.target = ShowProp(materialEditor, FindProperty("_Mapping", props)) == 1;

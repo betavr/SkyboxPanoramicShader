@@ -3,7 +3,28 @@ Properties {
     _Tint ("Tint Color", Color) = (.5, .5, .5, .5)
     [Gamma] _Exposure ("Exposure", Range(0, 8)) = 1.0
     _Rotation ("Rotation", Range(0, 360)) = 0
-    [NoScaleOffset] _Tex ("Spherical  (HDR)", 2D) = "grey" {}
+    _Stitching("Stitching adjustment", Range(0, 1)) = 0.0
+    [NoScaleOffset] _Tex("Spherical  (HDR)", 2D) = "black" {}
+
+    [NoScaleOffset] _TexL1("Layer 1", 2D) = "black" {}
+    [Enum(None, 0, Lighten, 1, Add, 2, Multiply, 3)] _BlendL1("Blending mode 1", Float) = 0
+    _OpacityL1("Layer 1: Opacity ", Range(0, 1)) = 0
+    [NoScaleOffset] _TexL2("Layer 2", 2D) = "black" {}
+    [Enum(None, 0, Lighten, 1, Add, 2, Multiply, 3)] _BlendL2("Blending mode 2", Float) = 0
+    _OpacityL2("Layer 2: Opacity ", Range(0, 1)) = 0
+    [NoScaleOffset] _TexL3("Layer 3", 2D) = "black" {}
+    [Enum(None, 0, Lighten, 1, Add, 2, Multiply, 3)] _BlendL3("Blending mode 3", Float) = 0
+    _OpacityL3("Layer 3: Opacity ", Range(0, 1)) = 0
+    [NoScaleOffset] _TexL4("Layer 4", 2D) = "black" {}
+    [Enum(None, 0, Lighten, 1, Add, 2, Multiply, 3)] _BlendL4("Blending mode 4", Float) = 0
+    _OpacityL4("Layer 4: Opacity ", Range(0, 1)) = 0
+    [NoScaleOffset] _TexL5("Layer 5", 2D) = "black" {}
+    [Enum(None, 0, Lighten, 1, Add, 2, Multiply, 3)] _BlendL5("Blending mode 5", Float) = 0
+    _OpacityL5("Layer 5: Opacity ", Range(0, 1)) = 0
+    [NoScaleOffset] _TexL6("Layer 6", 2D) = "black" {}
+    [Enum(None, 0, Lighten, 1, Add, 2, Multiply, 3)] _BlendL6("Blending mode 6", Float) = 0
+    _OpacityL6("Layer 6: Opacity ", Range(0, 1)) = 0
+
     [KeywordEnum(6 Frames Layout, Latitude Longitude Layout)] _Mapping("Mapping", Float) = 1
     [Enum(360 Degrees, 0, 180 Degrees, 1)] _ImageType("Image Type", Float) = 0
     [Toggle] _MirrorOnBack("Mirror on Back", Float) = 0
@@ -25,11 +46,30 @@ SubShader {
         #include "UnityCG.cginc"
 
         sampler2D _Tex;
+        sampler2D _TexL1;
+        sampler2D _TexL2;
+        sampler2D _TexL3;
+        sampler2D _TexL4;
+        sampler2D _TexL5;
+        sampler2D _TexL6;
+        float _BlendL1;
+        float _BlendL2;
+        float _BlendL3;
+        float _BlendL4;
+        float _BlendL5;
+        float _BlendL6;
+        float _OpacityL1;
+        float _OpacityL2;
+        float _OpacityL3;
+        float _OpacityL4;
+        float _OpacityL5;
+        float _OpacityL6;
         float4 _Tex_TexelSize;
         half4 _Tex_HDR;
         half4 _Tint;
         half _Exposure;
         float _Rotation;
+        float _Stitching;
         int _Layout;
 #ifndef _MAPPING_6_FRAMES_LAYOUT
         bool _MirrorOnBack;
@@ -173,9 +213,9 @@ SubShader {
 
             // additional stitching offset for seamless joining of the faces
             //float stitch = 0.0045;
-            float stitch = 0.00;
-            o.edgeSize.xy += stitch;
-            o.edgeSize.zw -= stitch;
+            //float stitch = 0.00;
+            o.edgeSize.xy += _Stitching;
+            o.edgeSize.zw -= _Stitching;
 #else // !_MAPPING_6_FRAMES_LAYOUT
             // Calculate constant horizontal scale and cutoff for 180 (vs 360) image type
             if (_ImageType == 0)  // 360 degree
@@ -208,7 +248,57 @@ SubShader {
             tc = (tc + i.layout3DScaleAndOffset.xy) * i.layout3DScaleAndOffset.zw;
 #endif
 
-            half4 tex = tex2D (_Tex, tc);
+            half4 tex = tex2D(_Tex, tc);
+
+            half4 layer1 = tex2D(_TexL1, tc);
+            half4 layer2 = tex2D(_TexL2, tc);
+            half4 layer3 = tex2D(_TexL3, tc);
+            half4 layer4 = tex2D(_TexL4, tc);
+            half4 layer5 = tex2D(_TexL5, tc);
+            half4 layer6 = tex2D(_TexL6, tc);
+
+            if (_BlendL1 == 1)
+                tex = tex + layer1 * _OpacityL1;
+            else if (_BlendL1 == 2)
+                tex = tex + layer1 * _OpacityL1;
+            else if (_BlendL1 == 3)
+                tex = tex * (layer1 * _OpacityL1);
+
+            if (_BlendL2 == 1)
+                tex = tex + layer2 * _OpacityL2;
+            else if (_BlendL2 == 2)
+                tex = tex + layer2 * _OpacityL2;
+            else if (_BlendL2 == 3)
+                tex = tex * (layer2 * _OpacityL2);
+
+            if (_BlendL3 == 1)
+                tex = tex + layer3 * _OpacityL3;
+            else if (_BlendL3 == 2)
+                tex = tex + layer3 * _OpacityL3;
+            else if (_BlendL3 == 3)
+                tex = tex * (layer3 * _OpacityL3);
+
+            if (_BlendL4 == 1)
+                tex = tex + layer4 * _OpacityL4;
+            else if (_BlendL4 == 2)
+                tex = tex + layer4 * _OpacityL4;
+            else if (_BlendL4 == 3)
+                tex = tex * (layer4 * _OpacityL4);
+
+            if (_BlendL5 == 1)
+                tex = tex + layer5 * _OpacityL5;
+            else if (_BlendL5 == 2)
+                tex = tex + layer5 * _OpacityL5;
+            else if (_BlendL5 == 3)
+                tex = tex * (layer5 * _OpacityL5);
+
+            if (_BlendL6 == 1)
+                tex = tex + layer6 * _OpacityL6;
+            else if (_BlendL6 == 2)
+                tex = tex + layer6 * _OpacityL6;
+            else if (_BlendL6 == 3)
+                tex = tex * (layer6 * _OpacityL6);
+
             half3 c = DecodeHDR (tex, _Tex_HDR);
             c = c * _Tint.rgb * unity_ColorSpaceDouble.rgb;
             c *= _Exposure;
